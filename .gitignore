@@ -1,0 +1,52 @@
+﻿# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.slnLaunch.user
+*.rsuser
+
+# .NET Build Files
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+
+# Visual Studio Cache
+*.cache
+*.tmp
+*.log
+
+# Test Results
+TestResults/
+[Bb]uild[Ll]og.*
+
+# User-specific IDE settings
+.idea/
+*.sln.iml
+
+# Secrets and Environment Files
+.env
+.env.*
+!.env.example
+
+**/secrets.json
+**/secrets.*.json
+**/appsettings.Development.json
+
+# Certificates and Private Keys
+*.pfx
+*.p12
+*.key
+*.pem
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node.js
+node_modules/
+dist/
+coverage/

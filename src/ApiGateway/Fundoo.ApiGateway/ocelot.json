@@ -1,0 +1,117 @@
+﻿{
+  "Routes": [
+    {
+
+      //Upstream is the URL the client calls
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      //the destination service URL.
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5253
+        }
+      ],
+      "RateLimitOptions": {
+        "EnableRateLimiting": true, //Turns rate limiting on for this route
+        "ClientIdHeader": "Oc-Client",
+        "Limit": 5,
+        "Period": "30s", // we can do 5 req in 30 sec
+        "EnableHeaders": true,
+        "StatusCode": 429, //Returns HTTP 429 Too Many Requests when the limit is exceeded
+        "QuotaMessage": "Rate limit exceeded. Please try again later."
+      },
+      "SwaggerKey": "user"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notes/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5168
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notes/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      "SwaggerKey": "notes"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5134
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notifications/{everything}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ],
+      "SwaggerKey": "notifications"
+    }
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "user",
+      "Config": [
+        {
+          "Name": "User API",
+          "Version": "v1",
+          "Url": "http://localhost:5253/swagger/v1/swagger.json" //swashbuckle fetches the json req body from this user url from swagger.json
+        }
+      ]
+    },
+    {
+      "Key": "notes",
+      "Config": [
+        {
+          "Name": "Notes API",
+          "Version": "v1",
+          "Url": "http://localhost:5168/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "notifications",
+      "Config": [
+        {
+          "Name": "Notification API",
+          "Version": "v1",
+          "Url": "http://localhost:5134/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000",
+
+    "RateLimitOptions": {
+      "ClientIdHeader": "Oc-Client",
+      "Limit": 5,
+      "Period": "30s",
+      "StatusCode": 429,
+      "QuotaMessage": "API request limit exceeded. Please try again later.",
+      "EnableHeaders": true
+    }
+  }
+}
