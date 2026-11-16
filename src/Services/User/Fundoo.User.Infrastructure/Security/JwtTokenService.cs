@@ -70,11 +70,9 @@ public class JwtTokenService : ITokenService
             signingCredentials: credentials
         );
 
-        // 5. Convert JWT object into a string
+        // 5. Convert JWT object into a string and return it
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-
 
     public string CreatePasswordResetToken(AppUser user)
     {

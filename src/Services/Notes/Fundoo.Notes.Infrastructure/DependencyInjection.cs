@@ -4,6 +4,8 @@ using Fundoo.Notes.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Fundoo.Notes.Application.Services;
+using Fundoo.Notes.Infrastructure.Caching;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 
 namespace Fundoo.Notes.Infrastructure;
 
@@ -21,6 +23,23 @@ public static class DependencyInjection
         services.AddScoped<ILabelRepository, LabelRepository>();
         services.AddScoped<ILabelService, LabelService>();
         services.AddScoped<INoteLabelRepository, NoteLabelRepository>();
+
+        var redisConnectionString =
+    configuration["Redis:ConnectionString"];
+
+        if (string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            throw new InvalidOperationException(
+                "Redis connection string is not configured.");
+        }
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnectionString;
+            options.InstanceName = "FundooNotes:";
+        });
+
+        services.AddScoped<INoteCache, RedisNoteCache>();
 
         return services;
     }

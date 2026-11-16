@@ -18,6 +18,7 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
+
     public async Task<AppUser?> GetByNormalizedEmailAsync(
         string normalizedEmail,
         CancellationToken cancellationToken = default)
@@ -38,6 +39,7 @@ public class UserRepository : IUserRepository
                 cancellationToken);
     }
 
+    //adding AppUser entity to db
     public async Task AddAsync(
         AppUser user,
         CancellationToken cancellationToken = default)
@@ -45,31 +47,9 @@ public class UserRepository : IUserRepository
         await _context.Users.AddAsync(user, cancellationToken);
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        await _context.SaveChangesAsync(cancellationToken);
-    }
+    
 
-    public async Task AddPasswordResetTokenAsync(
-        PasswordResetToken resetToken,
-        CancellationToken cancellationToken = default)
-    {
-        await _context.PasswordResetTokens.AddAsync(
-            resetToken,
-            cancellationToken);
-    }
-
-    public async Task<PasswordResetToken?> GetPasswordResetTokenByHashAsync(
-        string tokenHash,
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.PasswordResetTokens
-            .FirstOrDefaultAsync(
-                token => token.TokenHash == tokenHash,
-                cancellationToken);
-    }
-
-
+    //used in forgetPassword() in AuthService.cs
     public async Task InvalidateUnusedPasswordResetTokensAsync(
         Guid userId,
         DateTime usedAtUtc,
@@ -87,4 +67,30 @@ public class UserRepository : IUserRepository
         }
     }
 
+    //used in forgetPassword() in AuthService.cs
+    public async Task AddPasswordResetTokenAsync(
+        PasswordResetToken resetToken,
+        CancellationToken cancellationToken = default)
+    {
+        await _context.PasswordResetTokens.AddAsync(
+            resetToken,
+            cancellationToken);
+    }
+    
+    //used to actually adding the row in DB for both entities AppUser and PasswordResetToken
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    //used in reset password method
+    public async Task<PasswordResetToken?> GetPasswordResetTokenByHashAsync(
+        string tokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.PasswordResetTokens
+            .FirstOrDefaultAsync(
+                token => token.TokenHash == tokenHash,
+                cancellationToken);
+    }
 }

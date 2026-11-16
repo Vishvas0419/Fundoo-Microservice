@@ -6,16 +6,23 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System.Text;
+using Fundoo.Observability;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog((context, _, loggerConfiguration) =>
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ServiceName", "Fundoo.Notes.Api"));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddHealthChecks()
     .AddNpgSql(
-        connectionString: builder.Configuration
-            .GetConnectionString("NotesDb")!,
+        connectionString: builder.Configuration.GetConnectionString("NotesDb")!,
         name: "postgresql",
         failureStatus: HealthStatus.Unhealthy,
         tags: new[] { "ready" }
@@ -93,7 +100,17 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddFundooCorrelationIds();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<TraceIdLogContextMiddleware>();
+app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -107,6 +124,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("live"),

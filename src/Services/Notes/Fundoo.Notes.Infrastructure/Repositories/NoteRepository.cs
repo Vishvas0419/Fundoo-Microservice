@@ -2,6 +2,7 @@
 using Fundoo.Notes.Domain.Entities;
 using Fundoo.Notes.Infrastructure.Database;
 using Npgsql;
+using System.Reflection.Metadata;
 //using NpgsqlTypes;
 
 namespace Fundoo.Notes.Infrastructure.Repositories;
@@ -28,22 +29,21 @@ public class NoteRepository : INoteRepository
             ORDER BY updated_at_utc DESC;
             """;
 
-        var notes = new List<Note>();
+        var notes = new List<Note>(); //a collection to store all the records returned from PostgreSQL.
 
-        await using var connection =
-            _connectionFactory.CreateConnection();
+        await using var connection = _connectionFactory.CreateConnection(); //This creates a connection object and opens a connection to PostgreSQL.
 
-        await connection.OpenAsync(cancellationToken);
+        await connection.OpenAsync(cancellationToken);//opens the connection so that we can communicate between asp.net and postgres DB but first it checks connection pool for existing connection pool, if not present then creates a new one.
 
-        await using var command = new NpgsqlCommand(sql, connection);
-        command.Parameters.AddWithValue("userId", userId);
+        await using var command = new NpgsqlCommand(sql, connection); //executes SQL queries written above for a specific DB - Postgres (acc to conn string)
+        command.Parameters.AddWithValue("userId", userId);//passes values safely above in the sql query i.e @userId, PostgreSQL receives the query and parameter value separately. This protects against SQL injection through parameter values.
 
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken); //when we execute the SELECT query it reads database records and store it in a NpgsqlReader
 
+        //ReadAsync() moves the reader to the next row.
         while (await reader.ReadAsync(cancellationToken))
         {
-            notes.Add(MapNote(reader));
+            notes.Add(MapNote(reader)); //Each row is converted into a Note object using MapNote().
         }
 
         return notes;
@@ -62,10 +62,9 @@ public class NoteRepository : INoteRepository
             WHERE id = @noteId AND user_id = @userId;
             """;
 
-        await using var connection =
-            _connectionFactory.CreateConnection();
+        await using var connection = _connectionFactory.CreateConnection();
 
-        await connection.OpenAsync(cancellationToken);
+        await connection.OpenAsync(cancellationToken); //connection pooling
 
         await using var command = new NpgsqlCommand(sql, connection);
 
@@ -114,8 +113,7 @@ public class NoteRepository : INoteRepository
         command.Parameters.AddWithValue("title", note.Title);
         command.Parameters.AddWithValue("content", note.Content);
 
-        command.Parameters.AddWithValue(
-            "color",
+        command.Parameters.AddWithValue("color",
             (object?)note.Color ?? DBNull.Value);
 
         command.Parameters.AddWithValue("isPinned", note.IsPinned);
@@ -126,7 +124,7 @@ public class NoteRepository : INoteRepository
         command.Parameters.AddWithValue(
             "updatedAtUtc", note.UpdatedAtUtc);
 
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        await command.ExecuteNonQueryAsync(cancellationToken); //executes an SQL command that does not return a result set (rows), for eg: INSERT,UPDATE,DELETE
     }
 
     public async Task<bool> UpdateAsync(
@@ -311,6 +309,7 @@ public class NoteRepository : INoteRepository
 
         return rowsAffected > 0;
     }
+
     public async Task<IReadOnlyList<Note>> GetByCategoryAsync(
     Guid userId,
     string category,

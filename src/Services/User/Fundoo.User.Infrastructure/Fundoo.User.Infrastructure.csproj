@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Fundoo.Observability\Fundoo.Observability.csproj" />
     <ProjectReference Include="..\Fundoo.User.Application\Fundoo.User.Application.csproj" />
   </ItemGroup>
 

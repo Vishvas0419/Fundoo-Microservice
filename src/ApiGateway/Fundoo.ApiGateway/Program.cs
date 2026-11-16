@@ -1,19 +1,38 @@
-using Ocelot.DependencyInjection;
-using Ocelot.Middleware;
+using Fundoo.Observability;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MMLib.SwaggerForOcelot.DependencyInjection;
 using MMLib.SwaggerForOcelot.Middleware;
-
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
+using Serilog;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
+using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, _, loggerConfiguration) =>
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ServiceName", "Fundoo.ApiGateway"));
+
+builder.Services.AddHealthChecks()
+    .AddCheck(
+        "self",
+        () => HealthCheckResult.Healthy(),
+        tags: new[] { "live", "ready" }
+    );
+
 
 builder.Configuration.AddJsonFile(
     "ocelot.json",
     optional: false,
     reloadOnChange: true);
 
-builder.Services.AddOcelot(builder.Configuration); //add ocelot.json
+builder.Services.AddOcelot(builder.Configuration) //add ocelot.json
+ .AddDelegatingHandler<CorrelationIdDelegatingHandler>(global: true);
 
 builder.Services.AddSwaggerForOcelot(builder.Configuration);  // swagger endpoints seek
 
@@ -35,8 +54,18 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
+builder.Services.AddFundooCorrelationIds();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+
 
 var app = builder.Build();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<TraceIdLogContextMiddleware>();
+app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
 
 app.UseRateLimiter();
 
@@ -44,6 +73,18 @@ app.UseRateLimiter();
 app.UseSwaggerForOcelotUI(options =>
 {
     options.PathToSwaggerGenerator = "/swagger/docs";
+});
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
 // Enable Ocelot routing

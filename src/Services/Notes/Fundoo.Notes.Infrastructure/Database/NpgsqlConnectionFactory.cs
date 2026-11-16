@@ -3,17 +3,15 @@ using Npgsql;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Fundoo.Notes.Infrastructure.Database;
-
+//implements IDbConnectionFactory
 public class NpgsqlConnectionFactory : IDbConnectionFactory
 {
     private readonly string _connectionString;
 
     public NpgsqlConnectionFactory(IConfiguration configuration)
     {
-        _connectionString =
-            configuration.GetConnectionString("NotesDb")
-            ?? throw new InvalidOperationException(
-                "Connection string 'NotesDb' is not configured.");
+        _connectionString = configuration.GetConnectionString("NotesDb")
+            ?? throw new InvalidOperationException("Connection string 'NotesDb' is not configured.");
     }
 
     public NpgsqlConnection CreateConnection()

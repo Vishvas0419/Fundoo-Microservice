@@ -3,6 +3,9 @@
   <Folder Name="/src/ApiGateway/">
     <Project Path="src/ApiGateway/Fundoo.ApiGateway/Fundoo.ApiGateway.csproj" />
   </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Fundoo.Observability/Fundoo.Observability.csproj" />
+  </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Notes/">
     <Project Path="src/Services/Notes/Fundoo.Notes.Api/Fundoo.Notes.Api.csproj" />

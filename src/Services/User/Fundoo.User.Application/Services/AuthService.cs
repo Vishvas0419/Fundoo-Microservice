@@ -36,18 +36,19 @@ public class AuthService : IAuthService
     {
         var normalizedEmail = email.Trim().ToUpperInvariant();
 
+        //check if user already exists
         var existingUser =
             await _userRepository.GetByNormalizedEmailAsync(
                 normalizedEmail, cancellationToken);
 
-        if (existingUser != null)
+        if (existingUser != null) 
         {
             throw new InvalidOperationException(
                 "An account with this email already exists.");
         }
 
         var now = DateTime.UtcNow;
-
+        //if user doesnt already exists, put the user info inside a AppUser 
         var user = new AppUser
         {
             Id = Guid.NewGuid(),
@@ -55,13 +56,13 @@ public class AuthService : IAuthService
             LastName = lastName.Trim(),
             Email = email.Trim(),
             NormalizedEmail = normalizedEmail,
-            PasswordHash = _passwordHasher.Hash(password),
+            PasswordHash = _passwordHasher.Hash(password), //storing password in hashed form
             IsActive = true,
             CreatedAtUtc = now,
             UpdatedAtUtc = now
         };
-
-        await _userRepository.AddAsync(user, cancellationToken);
+        //adding the registered AppUser to DB
+        await _userRepository.AddAsync(user,cancellationToken);
         await _userRepository.SaveChangesAsync(cancellationToken);
 
         return "User registered successfully.";
@@ -74,20 +75,25 @@ public class AuthService : IAuthService
     {
         var normalizedEmail = email.Trim().ToUpperInvariant();
 
+        //check if the entered normalizedEmail is present in the db or not
         var user = await _userRepository.GetByNormalizedEmailAsync(normalizedEmail,cancellationToken);
 
         if (user == null || !user.IsActive)
         {
             return null;
         }
-        
-        var isPasswordValid = _passwordHasher.Verify(password,user.PasswordHash); //compares password with the stored hash
+
+        //compares password and verfies it with the given stored hash
+        var isPasswordValid = _passwordHasher.Verify(password,user.PasswordHash); 
 
         if (!isPasswordValid)
         {
             return null;
         }
+        
+        await _notificationClient.SendEmailAsync(user.Email, $"Welcome {user.FirstName}",$"Hello {user.FirstName} welcome to fundoo app",cancellationToken);
 
+        //if the email and  pasword is authenticated then return the access token as a response
         return _tokenService.CreateAccessToken(user);
     }
 
@@ -110,9 +116,11 @@ public class AuthService : IAuthService
         await _userRepository.InvalidateUnusedPasswordResetTokensAsync(user.Id,DateTime.UtcNow,cancellationToken);
 
         await _userRepository.SaveChangesAsync(cancellationToken);
-        var rawToken = _resetTokenService.GenerateToken();
-        var tokenHash = _resetTokenService.HashToken(rawToken);
 
+        var rawToken = _resetTokenService.GenerateToken();//This is the token sent to the user by email.
+        var tokenHash = _resetTokenService.HashToken(rawToken);//creates a one-way hash of that token. The hash is stored in the database:
+
+        //password reset token entity for storing in DB
         var resetToken = new PasswordResetToken
         {
             Id = Guid.NewGuid(),
@@ -122,16 +130,19 @@ public class AuthService : IAuthService
             UsedAtUtc = null
         };
 
-        await _userRepository.AddPasswordResetTokenAsync(
-            resetToken, cancellationToken);
+        //adding password reset token entity to DB
+        await _userRepository.AddPasswordResetTokenAsync(resetToken, cancellationToken);
 
         await _userRepository.SaveChangesAsync(cancellationToken);
 
         // Email integration will be added later.
         // For now, the raw token is not returned or stored.
         //var resetLink = $"https://localhost:5134/reset-password?token={Uri.EscapeDataString(rawToken)}";
-        var resetPasswordToken = Uri.EscapeDataString(rawToken);
 
+        //This URL-encodes the raw reset token so it can be safely placed inside a URL, query string, or email content.
+        var resetPasswordToken = Uri.EscapeDataString(rawToken); //Uri.EscapeDataString converts unsafe characters into percent-encoded form:
+
+        //sending resetPasswordToken to gmail
         await _notificationClient.SendEmailAsync(
             user.Email,
             "Reset your Fundoo password",

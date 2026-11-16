@@ -28,13 +28,13 @@ public class NotesController : ControllerBase
     public async Task<IActionResult> GetAll(
         CancellationToken cancellationToken)
     {
-        if (!TryGetUserId(out var userId))
-            return Unauthorized();
+        //TryGetUserId() extracts the logged-in user's ID from JWT. If you cannot extract it, return HTTP 401 Unauthorized and stop executing the current method. the TryGetUserId is written below
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
         var notes = await _noteService.GetByCategoryAsync(
             userId, "active", cancellationToken);
 
-        return Ok(notes.Select(MapToResponse));
+        return Ok(notes.Select(MapToResponse)); //converts each Note object into a NoteResponse object.
     }
 
     // GET: api/notes/archived
@@ -89,8 +89,7 @@ public class NotesController : ControllerBase
         [FromBody] CreateNoteRequest request,
         CancellationToken cancellationToken)
     {
-        if (!TryGetUserId(out var userId))
-            return Unauthorized();
+        if (!TryGetUserId(out var userId)) return Unauthorized();
 
         try
         {
@@ -312,6 +311,7 @@ public class NotesController : ControllerBase
         return NoContent();
     }
 
+    //Try to extract the logged-in user's ID from ClaimsPrincipal. If you cannot extract it, return HTTP 401 Unauthorized and stop executing the current method.
     private bool TryGetUserId(out Guid userId)
     {
         var userIdValue = User.FindFirst("sub")?.Value;
