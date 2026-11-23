@@ -14,4 +14,14 @@ public interface IUserRepository
     Task AddPasswordResetTokenAsync(PasswordResetToken resetToken,CancellationToken cancellationToken = default);
     Task<PasswordResetToken?> GetPasswordResetTokenByHashAsync(string tokenHash,CancellationToken cancellationToken = default);
     Task InvalidateUnusedPasswordResetTokensAsync(Guid userId,DateTime usedAtUtc,CancellationToken cancellationToken = default);
+
+
+    Task<ExternalLogin?> GetExternalLoginAsync(
+    string provider,
+    string providerSubject,
+    CancellationToken cancellationToken = default);
+
+    Task AddExternalLoginAsync(
+        ExternalLogin externalLogin,
+        CancellationToken cancellationToken = default);
 }

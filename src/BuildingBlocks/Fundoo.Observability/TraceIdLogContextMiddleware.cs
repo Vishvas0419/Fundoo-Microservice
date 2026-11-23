@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+//Reads the diagnostic trace ID from the current Activity. If there is no active activity, it uses ASP.NET’s request identifier instead. It adds the chosen value to the Serilog log context as TraceId while the request is being processed.
 namespace Fundoo.Observability;
 
 public sealed class TraceIdLogContextMiddleware

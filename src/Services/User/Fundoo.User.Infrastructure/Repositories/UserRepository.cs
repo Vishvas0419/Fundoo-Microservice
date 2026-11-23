@@ -93,4 +93,28 @@ public class UserRepository : IUserRepository
                 token => token.TokenHash == tokenHash,
                 cancellationToken);
     }
+
+
+
+    //Google Oauth 
+    public Task<ExternalLogin?> GetExternalLoginAsync(
+    string provider,
+    string providerSubject,
+    CancellationToken cancellationToken = default)
+    {
+        return _context.ExternalLogins
+            .FirstOrDefaultAsync(
+                login => login.Provider == provider &&
+                         login.ProviderSubject == providerSubject,
+                cancellationToken);
+    }
+
+    public async Task AddExternalLoginAsync(
+        ExternalLogin externalLogin,
+        CancellationToken cancellationToken = default)
+    {
+        await _context.ExternalLogins.AddAsync(
+            externalLogin,
+            cancellationToken);
+    }
 }

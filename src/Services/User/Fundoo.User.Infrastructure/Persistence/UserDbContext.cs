@@ -7,6 +7,7 @@ namespace Fundoo.User.Infrastructure.Persistence;
 public class UserDbContext : DbContext
 {
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) {}
+    public DbSet<ExternalLogin> ExternalLogins => Set<ExternalLogin>();
 
     public DbSet<AppUser> Users => Set<AppUser>();
 
@@ -26,6 +27,25 @@ public class UserDbContext : DbContext
 
             entity.Property(user => user.NormalizedEmail)
                 .HasMaxLength(256);
+        });
+        modelBuilder.Entity<ExternalLogin>(entity =>
+        {
+            entity.Property(login => login.Provider)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(login => login.ProviderSubject)
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.HasIndex(login => new
+            {
+                login.Provider,
+                login.ProviderSubject
+            })
+                .IsUnique();
+
+            entity.HasIndex(login => login.UserId);
         });
     }
 }

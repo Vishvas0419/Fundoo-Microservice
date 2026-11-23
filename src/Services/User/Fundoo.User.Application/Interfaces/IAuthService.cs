@@ -23,4 +23,12 @@ public interface IAuthService
         string token,
         string newPassword,
         CancellationToken cancellationToken = default);
+
+    //The method returns the Fundoo access token after resolving the local account.
+    Task<string> SignInWithExternalProviderAsync(
+    string provider,
+    string providerSubject,
+    string email,
+    string? displayName,
+    CancellationToken cancellationToken = default);
 }

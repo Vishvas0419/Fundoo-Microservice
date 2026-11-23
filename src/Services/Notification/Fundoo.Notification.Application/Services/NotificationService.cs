@@ -1,15 +1,20 @@
 ﻿
 using Fundoo.Notification.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Fundoo.Notification.Application.Services;
 
 public class NotificationService : INotificationService
 {
     private readonly IEmailSender _emailSender;
+    private readonly ILogger<NotificationService> _logger;
 
-    public NotificationService(IEmailSender emailSender)
+    public NotificationService(
+        IEmailSender emailSender,
+        ILogger<NotificationService> logger)
     {
         _emailSender = emailSender;
+        _logger = logger;
     }
 
     public async Task SendEmailAsync(
@@ -41,5 +46,7 @@ public class NotificationService : INotificationService
             subject,
             body,
             cancellationToken);
+
+        _logger.LogInformation("Email delivery completed successfully");
     }
 }

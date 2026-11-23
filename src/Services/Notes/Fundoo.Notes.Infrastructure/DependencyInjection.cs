@@ -15,8 +15,8 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddSingleton<IDbConnectionFactory,
-            NpgsqlConnectionFactory>();
+        services.AddSingleton<IDbConnectionFactory,NpgsqlConnectionFactory>();
+
         //Why AddSingleton? The factory stores the connection string, not an open database connection. Each repository operation will create and dispose its own connection.
         services.AddScoped<INoteRepository, NoteRepository>();
         services.AddScoped<INoteService, NoteService>();

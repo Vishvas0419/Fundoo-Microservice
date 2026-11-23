@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//Gives the incoming http request, a tracking number
 //This accepts a valid incoming ID or generates one, returns it in the response, and adds it to the Serilog log context.
 namespace Fundoo.Observability;
 

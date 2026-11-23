@@ -40,7 +40,7 @@ public class JwtTokenService : ITokenService
                 ? minutes
                 : 30;
 
-        // 1. Create the security key
+        // 1. Create the security key using the signing key
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(signingKey));
 
@@ -49,7 +49,7 @@ public class JwtTokenService : ITokenService
             key,
             SecurityAlgorithms.HmacSha256);
 
-        // 3. Create claims
+        // 3. Create claims which is stored in payload
         var claims = new[]
         {
         new Claim(

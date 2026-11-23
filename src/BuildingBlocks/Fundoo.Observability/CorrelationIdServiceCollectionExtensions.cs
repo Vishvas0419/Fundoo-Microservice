@@ -5,6 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//Provides the AddFundooCorrelationIds() registration helper
+
+//It registers IHttpContextAccessor and CorrelationIdDelegatingHandler with dependency injection.
+
 namespace Fundoo.Observability;
 
 public static class CorrelationIdServiceCollectionExtensions

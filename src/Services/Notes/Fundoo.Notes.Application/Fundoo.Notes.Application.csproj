@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fundoo.Notes.Domain\Fundoo.Notes.Domain.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
   </ItemGroup>
 
   <PropertyGroup>

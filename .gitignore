@@ -17,6 +17,7 @@
 *.cache
 *.tmp
 *.log
+**/logs/
 
 # Test Results
 TestResults/

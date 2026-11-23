@@ -1,5 +1,6 @@
 ﻿using Fundoo.Notes.Application.Interfaces;
 using Fundoo.Notes.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System.Data.Common;
 
 namespace Fundoo.Notes.Application.Services;
@@ -8,10 +9,16 @@ public class NoteService : INoteService
 {
     private readonly INoteRepository _noteRepository;
     private readonly INoteCache _noteCache;
-    public NoteService(INoteRepository noteRepository,INoteCache noteCache)
+    private readonly ILogger<NoteService> _logger;
+
+    public NoteService(
+        INoteRepository noteRepository,
+        INoteCache noteCache,
+        ILogger<NoteService> logger)
     {
         _noteRepository = noteRepository;
         _noteCache = noteCache;
+        _logger = logger;
     }
 
     public Task<IReadOnlyList<Note>> GetByCategoryAsync(
@@ -51,8 +58,10 @@ public class NoteService : INoteService
         //cache hit
         if (cachedNote is not null)
         {
+            _logger.LogDebug("Note cache hit for note {NoteId} and user {UserId}", noteId, userId);
             return cachedNote;
         }
+        _logger.LogDebug("Note cache miss for note {NoteId} and user {UserId}", noteId, userId);
         //cache miss will go to PG db
         var note = await _noteRepository.GetByIdAsync(
             noteId,
@@ -105,6 +114,8 @@ public class NoteService : INoteService
 
         await _noteRepository.AddAsync(note, cancellationToken);
 
+        _logger.LogInformation("Note {NoteId} created for user {UserId}", note.Id, userId);
+
         return note;
     }
 
@@ -123,6 +134,7 @@ public class NoteService : INoteService
 
         if (note is null)
         {
+            _logger.LogDebug("Update skipped because note {NoteId} was not found for user {UserId}", noteId, userId);
             return false;
         }
 
@@ -144,6 +156,7 @@ public class NoteService : INoteService
                 userId,
                 noteId,
                 cancellationToken);
+            _logger.LogInformation("Note {NoteId} updated for user {UserId}", noteId, userId);
         }
 
         return updated;
@@ -159,6 +172,7 @@ public class NoteService : INoteService
         if(deleted)
         {
             await _noteCache.RemoveAsync(userId, noteId, cancellationToken);
+            _logger.LogInformation("Note {NoteId} deleted for user {UserId}", noteId, userId);
         }
         return deleted;
     }
@@ -175,6 +189,7 @@ public class NoteService : INoteService
         if(updated)
         {
             await _noteCache.RemoveAsync(userId, noteId, cancellationToken);
+            _logger.LogInformation("Pin state for note {NoteId} changed to {IsPinned} for user {UserId}", noteId, isPinned, userId);
         }
         return updated;
     }
@@ -190,6 +205,7 @@ public class NoteService : INoteService
         if(archived)
         {
             await _noteCache.RemoveAsync(userId, noteId, cancellationToken);
+            _logger.LogInformation("Archive state for note {NoteId} changed to {IsArchived} for user {UserId}", noteId, isArchived, userId);
         }
         return archived;
     }
@@ -206,6 +222,7 @@ public class NoteService : INoteService
         if(trashed)
         {
             await _noteCache.RemoveAsync(userId, noteId, cancellationToken);
+            _logger.LogInformation("Trash state for note {NoteId} changed to {IsTrashed} for user {UserId}", noteId, isTrashed, userId);
         }
         return trashed;
     }

@@ -7,8 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 //Use this for outgoing HTTP requests made while handling an incoming request.
+//It reads the correlation ID saved by the middleware and adds it to the outgoing request’s X-Correlation-ID header.
+//CorrelationIdDelegatingHandler adds X-Correlation-ID to the Notification call
+  //→  so Notification service can log the same ID
 namespace Fundoo.Observability;
-
 public sealed class CorrelationIdDelegatingHandler : DelegatingHandler
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
