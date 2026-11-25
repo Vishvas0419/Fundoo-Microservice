@@ -4,7 +4,7 @@ using Fundoo.Notification.Infrastructure.Email;
 using Fundoo.Notification.Infrastructure.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Fundoo.Notification.Infrastructure.Messaging;
 namespace Fundoo.Notification.Infrastructure;
 
 public static class DependencyInjection
@@ -17,6 +17,7 @@ public static class DependencyInjection
             configuration.GetSection("SmtpSettings"));
 
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+      services.AddHostedService<UserRegisteredConsumer>();
 
         return services;
     }

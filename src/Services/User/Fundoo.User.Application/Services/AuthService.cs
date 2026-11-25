@@ -3,6 +3,7 @@ using Fundoo.User.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
+using Fundoo.Contracts.Events;
 
 namespace Fundoo.User.Application.Services;
 
@@ -16,6 +17,7 @@ public class AuthService : IAuthService
     private readonly IPasswordResetTokenService _resetTokenService;
     private readonly INotificationClient _notificationClient;
     private readonly ILogger<AuthService> _logger;
+    private readonly IEventPublisher _eventPublisher;
 
     public AuthService(
         IUserRepository userRepository,
@@ -23,6 +25,7 @@ public class AuthService : IAuthService
         ITokenService tokenService,
         IPasswordResetTokenService resetTokenService,
         INotificationClient notificationClient,
+        IEventPublisher eventPublisher,
         ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
@@ -30,6 +33,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
         _resetTokenService = resetTokenService;
         _notificationClient = notificationClient;
+        _eventPublisher = eventPublisher;
         _logger = logger;
     }
 
@@ -72,7 +76,26 @@ public class AuthService : IAuthService
         await _userRepository.AddAsync(user,cancellationToken);
         await _userRepository.SaveChangesAsync(cancellationToken);
 
+        //create a registration event 
+        var userRegisteredEvent = new UserRegisteredEvent
+        {
+            EventId = Guid.NewGuid(),
+            EventType = "UserRegistered",
+            EventVersion = 1,
+            UserId = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            OccurredAtUtc = DateTimeOffset.UtcNow
+        };
+        //publish the event to kafka
+        await _eventPublisher.PublishAsync(
+            "user-registered",
+            userRegisteredEvent,
+            cancellationToken);
+
         _logger.LogInformation("User account {UserId} registered successfully", user.Id);
+
+        //await _notificationClient.SendEmailAsync(user.Email, $"Welcome {user.FirstName}", $"Hello {user.FirstName} welcome to fundoo app", cancellationToken);
 
         return "User registered successfully.";
     }
@@ -102,7 +125,7 @@ public class AuthService : IAuthService
             return null;
         }
         
-        await _notificationClient.SendEmailAsync(user.Email, $"Welcome {user.FirstName}",$"Hello {user.FirstName} welcome to fundoo app",cancellationToken);
+        //await _notificationClient.SendEmailAsync(user.Email, $"Welcome {user.FirstName}",$"Hello {user.FirstName} welcome to fundoo app",cancellationToken);
 
         //if the email and  pasword is authenticated then return the access token as a response
         var accessToken = _tokenService.CreateAccessToken(user);

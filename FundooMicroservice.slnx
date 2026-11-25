@@ -1,9 +1,13 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/ApiGateway/">
     <Project Path="src/ApiGateway/Fundoo.ApiGateway/Fundoo.ApiGateway.csproj" />
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Fundoo.Contracts/Fundoo.Contracts.csproj" />
     <Project Path="src/BuildingBlocks/Fundoo.Observability/Fundoo.Observability.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />

@@ -12,8 +12,9 @@
     using Microsoft.Extensions.Http.Resilience;
     using Fundoo.Observability;
     using Polly;
-
     using System.Threading.RateLimiting;
+    using Fundoo.User.Infrastructure.Messaging;
+
     namespace Fundoo.User.Infrastructure;
 
     public static class DependencyInjection
@@ -44,9 +45,10 @@
     services.AddScoped<ITokenService, JwtTokenService>();
     services.AddScoped<IAuthService, AuthService>();
     services.AddScoped<IPasswordResetTokenService,PasswordResetTokenService>();
+     services.AddSingleton<IEventPublisher, KafkaEventPublisher>(); //Kafka's producer is thread-safe and designed to be reused.
 
-    // Incoming API Rate Limiter: Fixed Window
-    services.AddRateLimiter(options =>
+        // Incoming API Rate Limiter: Fixed Window
+        services.AddRateLimiter(options =>
     {
     options.AddPolicy<string>("fixed", context =>
     RateLimitPartition.GetFixedWindowLimiter(
